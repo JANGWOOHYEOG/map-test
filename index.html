@@ -23,7 +23,8 @@
 </head>
 <body>
   <h1>내 지도</h1>
-  <p>지도를 클릭하면 점이 찍히고, 점 위에 마우스를 올리면 이름이 보입니다.</p>
+  <p>지도를 클릭하면 점이 찍히고, 점 위에 마우스를 올리면 이름이 보입니다.<br>
+     오른쪽 클릭하면 점이 삭제됩니다.</p>
   <div id="map-container">
     <img src="map.png" alt="지도" id="map">
   </div>
@@ -31,12 +32,13 @@
   <!-- Firebase SDK와 Realtime Database 연결 -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+    import { getDatabase, ref, push, onChildAdded, onChildRemoved, remove } 
+      from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyD-snYGlYajcwRDri2lsTrYB0Ta0OB3AdI",
       authDomain: "map-test-ce693.firebaseapp.com",
-      databaseURL: "https://map-test-ce693-default-rtdb.firebaseio.com", // ✅ 여기 넣기
+      databaseURL: "https://map-test-ce693-default-rtdb.firebaseio.com",
       projectId: "map-test-ce693",
       storageBucket: "map-test-ce693.appspot.com",
       messagingSenderId: "243965620518",
@@ -67,9 +69,27 @@
       marker.style.left = (data.x - 7) + "px";
       marker.style.top = (data.y - 7) + "px";
       marker.title = data.name;
+
+      // snapshot.key를 marker에 저장 (삭제 시 식별용)
+      marker.dataset.key = snapshot.key;
+
+      // 오른쪽 클릭 시 DB에서 삭제
+      marker.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        remove(snapshot.ref);
+      });
+
       mapContainer.appendChild(marker);
+    });
+
+    // DB에서 삭제된 마커를 화면에서도 제거
+    onChildRemoved(ref(db, "markers"), (snapshot) => {
+      const key = snapshot.key;
+      const marker = document.querySelector(`.marker[data-key="${key}"]`);
+      if (marker) {
+        marker.remove();
+      }
     });
   </script>
 </body>
 </html>
-
