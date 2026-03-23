@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>마탑 2층 길드원 위치공유</title>
+   <style>
+    #map-container {
+      position: relative;
+      width: 800px;
+    }
+    #map-container img {
+      width: 100%;
+    }
+    .marker {
+      position: absolute;
+      width: 15px;
+      height: 15px;
+      background: blue; /* 여기서 색깔을 파란색으로 변경 */
+      border-radius: 50%;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>내 지도</h1>
+  <p>지도를 클릭하면 점이 찍히고, 점 위에 마우스를 올리면 이름이 보입니다.</p>
+  <div id="map-container">
+    <img src="map.png" alt="지도" id="map">
+  </div>
+
+  <script>
+    const mapContainer = document.getElementById("map-container");
+
+    mapContainer.addEventListener("click", function(event) {
+      const rect = mapContainer.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+
+      const clickedElement = event.target;
+      if (clickedElement.classList.contains("marker")) {
+        clickedElement.remove();
+      } else {
+        const name = prompt("이 위치에 표시할 이름을 입력하세요:");
+        if (name) {
+          const marker = document.createElement("div");
+          marker.className = "marker";
+          marker.style.left = (x - 7) + "px";
+          marker.style.top = (y - 7) + "px";
+          marker.title = name;
+          mapContainer.appendChild(marker);
+        }
+      }
+    });
+  </script>
+</body>
+</html>
+
