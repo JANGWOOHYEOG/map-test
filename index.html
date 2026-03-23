@@ -28,13 +28,13 @@
   <h1>내 지도</h1>
   <p>
     지도를 클릭하면 점이 찍히고, 점 위에 마우스를 올리면 이름이 보입니다.<br>
-    오른쪽 클릭하면 점이 삭제됩니다.
+    PC에서는 오른쪽 클릭으로 삭제, 스마트폰에서는 점을 탭하면 삭제됩니다.
   </p>
 
   <div id="map-container">
     <div class="map-wrapper">
       <h2>지도 1</h2>
-      <img src="map1.png" alt="지도1" id="map1">
+      <img src="map.png" alt="지도1" id="map1">
     </div>
     <div class="map-wrapper">
       <h2>지도 2</h2>
@@ -88,10 +88,17 @@
         marker.title = data.name;
         marker.dataset.key = snapshot.key;
 
-        // 오른쪽 클릭 시 삭제
+        // PC: 오른쪽 클릭 시 삭제
         marker.addEventListener("contextmenu", (e) => {
           e.preventDefault();
           remove(snapshot.ref);
+        });
+
+        // 모바일: 클릭 시 삭제
+        marker.addEventListener("click", (e) => {
+          if (/Mobi|Android/i.test(navigator.userAgent)) {
+            remove(snapshot.ref);
+          }
         });
 
         container.appendChild(marker);
@@ -111,3 +118,4 @@
   </script>
 </body>
 </html>
+
