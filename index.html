@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>마탑 2층 길드원 위치공유</title>
-   <style>
+  <style>
     #map-container {
       position: relative;
       width: 800px;
@@ -15,7 +15,7 @@
       position: absolute;
       width: 15px;
       height: 15px;
-      background: blue; /* 여기서 색깔을 파란색으로 변경 */
+      background: blue;
       border-radius: 50%;
       cursor: pointer;
     }
@@ -28,28 +28,46 @@
     <img src="map.png" alt="지도" id="map">
   </div>
 
-  <script>
+  <!-- Firebase SDK와 Realtime Database 연결 -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD-snYGlYajcwRDri2lsTrYB0Ta0OB3AdI",
+      authDomain: "map-test-ce693.firebaseapp.com",
+      databaseURL: "https://map-test-ce693-default-rtdb.firebaseio.com", // ✅ 여기 넣기
+      projectId: "map-test-ce693",
+      storageBucket: "map-test-ce693.appspot.com",
+      messagingSenderId: "243965620518",
+      appId: "1:243965620518:web:93287a31fcc30ddaad91e7",
+      measurementId: "G-2P3X62D6ZC"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
     const mapContainer = document.getElementById("map-container");
 
+    // 지도 클릭 → DB에 저장
     mapContainer.addEventListener("click", function(event) {
-      const rect = mapContainer.getBoundingClientRect();
-      const x = event.clientX - rect.left;
-      const y = event.clientY - rect.top;
-
-      const clickedElement = event.target;
-      if (clickedElement.classList.contains("marker")) {
-        clickedElement.remove();
-      } else {
-        const name = prompt("이 위치에 표시할 이름을 입력하세요:");
-        if (name) {
-          const marker = document.createElement("div");
-          marker.className = "marker";
-          marker.style.left = (x - 7) + "px";
-          marker.style.top = (y - 7) + "px";
-          marker.title = name;
-          mapContainer.appendChild(marker);
-        }
+      const x = event.offsetX;
+      const y = event.offsetY;
+      const name = prompt("이 위치에 표시할 이름을 입력하세요:");
+      if (name) {
+        push(ref(db, "markers"), { x, y, name });
       }
+    });
+
+    // DB에서 실시간으로 마커 불러오기
+    onChildAdded(ref(db, "markers"), (snapshot) => {
+      const data = snapshot.val();
+      const marker = document.createElement("div");
+      marker.className = "marker";
+      marker.style.left = (data.x - 7) + "px";
+      marker.style.top = (data.y - 7) + "px";
+      marker.title = data.name;
+      mapContainer.appendChild(marker);
     });
   </script>
 </body>
