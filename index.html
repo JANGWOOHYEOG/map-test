@@ -28,7 +28,7 @@
   <h1>내 지도</h1>
   <p>
     지도를 클릭하면 점이 찍히고, 점 위에 마우스를 올리면 이름이 보입니다.<br>
-    PC에서는 오른쪽 클릭으로 삭제, 스마트폰에서는 점을 탭하면 삭제됩니다.
+    PC에서는 오른쪽 클릭으로 삭제, 스마트폰에서는 점을 탭하면 이름 확인, 더블탭하면 삭제됩니다.
   </p>
 
   <div id="map-container">
@@ -85,21 +85,26 @@
         marker.className = "marker";
         marker.style.left = (data.x - 7) + "px";
         marker.style.top = (data.y - 7) + "px";
-        marker.title = data.name;
         marker.dataset.key = snapshot.key;
 
-        // PC: 오른쪽 클릭 시 삭제
-        marker.addEventListener("contextmenu", (e) => {
-          e.preventDefault();
-          remove(snapshot.ref);
-        });
-
-        // 모바일: 클릭 시 삭제
-        marker.addEventListener("click", (e) => {
-          if (/Mobi|Android/i.test(navigator.userAgent)) {
+        // PC 동작
+        if (!/Mobi|Android/i.test(navigator.userAgent)) {
+          marker.title = data.name; // hover 시 이름 표시
+          marker.addEventListener("contextmenu", (e) => {
+            e.preventDefault();
             remove(snapshot.ref);
-          }
-        });
+          });
+        } else {
+          // 모바일 동작
+          marker.addEventListener("click", () => {
+            alert("이름: " + data.name);
+          });
+          marker.addEventListener("dblclick", () => {
+            if (confirm("정말 삭제하시겠습니까?")) {
+              remove(snapshot.ref);
+            }
+          });
+        }
 
         container.appendChild(marker);
       });
@@ -118,4 +123,3 @@
   </script>
 </body>
 </html>
-
