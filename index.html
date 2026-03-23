@@ -22,13 +22,26 @@
       border-radius: 50%;
       cursor: pointer;
     }
+    /* 말풍선 스타일 */
+    .tooltip {
+      position: absolute;
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      padding: 5px 8px;
+      border-radius: 5px;
+      font-size: 12px;
+      white-space: nowrap;
+      transform: translate(-50%, -120%);
+      pointer-events: none;
+      z-index: 10;
+    }
   </style>
 </head>
 <body>
   <h1>내 지도</h1>
   <p>
     지도를 클릭하면 점이 찍히고, 점 위에 마우스를 올리면 이름이 보입니다.<br>
-    PC에서는 오른쪽 클릭으로 삭제, 스마트폰에서는 점을 탭하면 이름 확인, 더블탭하면 삭제됩니다.
+    PC에서는 오른쪽 클릭으로 삭제, 스마트폰에서는 점을 탭하면 말풍선으로 이름 확인 후 삭제 여부까지 선택할 수 있습니다.
   </p>
 
   <div id="map-container">
@@ -42,7 +55,6 @@
     </div>
   </div>
 
-  <!-- Firebase SDK와 Realtime Database 연결 -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
     import { getDatabase, ref, push, onChildAdded, onChildRemoved, remove } 
@@ -62,7 +74,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // 지도별 독립 마커 관리 함수
     function setupMap(mapId, dbPath) {
       const mapElement = document.getElementById(mapId);
       const container = mapElement.parentElement;
@@ -87,22 +98,29 @@
         marker.style.top = (data.y - 7) + "px";
         marker.dataset.key = snapshot.key;
 
-        // PC 동작
         if (!/Mobi|Android/i.test(navigator.userAgent)) {
-          marker.title = data.name; // hover 시 이름 표시
+          // PC: hover 시 이름 표시, 오른쪽 클릭 삭제
+          marker.title = data.name;
           marker.addEventListener("contextmenu", (e) => {
             e.preventDefault();
             remove(snapshot.ref);
           });
         } else {
-          // 모바일 동작
+          // 모바일: 탭 → 말풍선 표시 + 삭제 여부 확인
           marker.addEventListener("click", () => {
-            alert("이름: " + data.name);
-          });
-          marker.addEventListener("dblclick", () => {
-            if (confirm("정말 삭제하시겠습니까?")) {
-              remove(snapshot.ref);
-            }
+            // 말풍선 생성
+            const tooltip = document.createElement("div");
+            tooltip.className = "tooltip";
+            tooltip.textContent = data.name;
+            marker.appendChild(tooltip);
+
+            // 2초 후 삭제 여부 확인
+            setTimeout(() => {
+              marker.removeChild(tooltip);
+              if (confirm(`이름: ${data.name}\n이 마커를 삭제하시겠습니까?`)) {
+                remove(snapshot.ref);
+              }
+            }, 2000);
           });
         }
 
@@ -117,7 +135,6 @@
       });
     }
 
-    // 지도별로 독립된 DB 경로 사용
     setupMap("map1", "markers1");
     setupMap("map2", "markers2");
   </script>
