@@ -22,7 +22,6 @@
       border-radius: 50%;
       cursor: pointer;
     }
-    /* 말풍선 스타일 */
     .tooltip {
       position: absolute;
       background: rgba(0,0,0,0.8);
@@ -78,14 +77,14 @@
       const mapElement = document.getElementById(mapId);
       const container = mapElement.parentElement;
 
-      // 지도 클릭 → DB에 저장
+      // 지도 클릭 → 비율로 저장
       mapElement.addEventListener("click", function(event) {
         const rect = mapElement.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
+        const xRatio = (event.clientX - rect.left) / rect.width;
+        const yRatio = (event.clientY - rect.top) / rect.height;
         const name = prompt("이 위치에 표시할 이름을 입력하세요:");
         if (name) {
-          push(ref(db, dbPath), { x, y, name });
+          push(ref(db, dbPath), { x: xRatio, y: yRatio, name });
         }
       });
 
@@ -94,8 +93,8 @@
         const data = snapshot.val();
         const marker = document.createElement("div");
         marker.className = "marker";
-        marker.style.left = (data.x - 7) + "px";
-        marker.style.top = (data.y - 7) + "px";
+        marker.style.left = (data.x * mapElement.clientWidth - 7) + "px";
+        marker.style.top  = (data.y * mapElement.clientHeight - 7) + "px";
         marker.dataset.key = snapshot.key;
 
         if (!/Mobi|Android/i.test(navigator.userAgent)) {
@@ -108,15 +107,13 @@
         } else {
           // 모바일: 탭 → 말풍선 표시 + 삭제 여부 확인
           marker.addEventListener("click", () => {
-            // 말풍선 생성
             const tooltip = document.createElement("div");
             tooltip.className = "tooltip";
             tooltip.textContent = data.name;
             marker.appendChild(tooltip);
 
-            // 2초 후 삭제 여부 확인
             setTimeout(() => {
-              marker.removeChild(tooltip);
+              if (tooltip.parentNode) marker.removeChild(tooltip);
               if (confirm(`이름: ${data.name}\n이 마커를 삭제하시겠습니까?`)) {
                 remove(snapshot.ref);
               }
