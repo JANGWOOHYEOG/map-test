@@ -80,9 +80,8 @@
 
       // 지도 클릭 → 비율로 저장
       mapElement.addEventListener("click", function(event) {
-        const rect = mapElement.getBoundingClientRect();
-        const xRatio = (event.clientX - rect.left) / rect.width;
-        const yRatio = (event.clientY - rect.top) / rect.height;
+        const xRatio = event.offsetX / mapElement.offsetWidth;
+        const yRatio = event.offsetY / mapElement.offsetHeight;
         const name = prompt("이 위치에 표시할 이름을 입력하세요:");
         if (!name) return;
         const color = prompt("마커 색상을 입력하세요 (예: red, blue, #ff0000):") || "blue";
@@ -94,6 +93,7 @@
         const data = snapshot.val();
         const marker = document.createElement("div");
         marker.className = "marker";
+        marker.style.background = data.color || "blue";
 
         // 이미지 크기를 기준으로 좌표 계산
         const xPos = data.x * mapElement.offsetWidth;
@@ -101,7 +101,7 @@
 
         marker.style.left = (xPos - 7) + "px";
         marker.style.top  = (yPos - 7) + "px";
-        marker.style.background = data.color || "blue";
+        marker.style.position = "absolute";
         marker.dataset.key = snapshot.key;
 
         if (!/Mobi|Android/i.test(navigator.userAgent)) {
