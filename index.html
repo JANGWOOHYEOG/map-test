@@ -93,8 +93,9 @@
 
       // 지도 클릭 → 비율로 저장
       mapElement.addEventListener("click", function(event) {
-        const xRatio = event.offsetX / mapElement.offsetWidth;
-        const yRatio = event.offsetY / mapElement.offsetHeight;
+        const rect = mapElement.getBoundingClientRect();
+        const xRatio = (event.clientX - rect.left) / rect.width;
+        const yRatio = (event.clientY - rect.top) / rect.height;
         const name = prompt("이 위치에 표시할 이름을 입력하세요:");
         if (!name) return;
         const color = getRandomColor();
@@ -108,8 +109,8 @@
         marker.className = "marker";
         marker.style.background = data.color || "blue";
 
-        const xPos = data.x * mapElement.offsetWidth;
-        const yPos = data.y * mapElement.offsetHeight;
+        const xPos = data.x * mapElement.clientWidth;
+        const yPos = data.y * mapElement.clientHeight;
 
         marker.style.left = xPos + "px";
         marker.style.top  = yPos + "px";
@@ -153,4 +154,3 @@
   </script>
 </body>
 </html>
-
