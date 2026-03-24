@@ -21,6 +21,7 @@
       height: 15px;
       border-radius: 50%;
       cursor: pointer;
+      transform: translate(-50%, -50%); /* 클릭 지점 중심 맞추기 */
     }
     .tooltip {
       position: absolute;
@@ -73,10 +74,16 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
+    // 랜덤 색상 생성 함수
+    function getRandomColor() {
+      const colors = ["red", "blue", "green", "orange", "purple", "pink", "yellow", "cyan", "magenta"];
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+
     function setupMap(mapId, dbPath) {
       const mapElement = document.getElementById(mapId);
       const container = mapElement.parentElement;
-      container.style.position = "relative"; // 좌표 기준 설정
+      container.style.position = "relative";
 
       // 지도 클릭 → 비율로 저장
       mapElement.addEventListener("click", function(event) {
@@ -84,7 +91,7 @@
         const yRatio = event.offsetY / mapElement.offsetHeight;
         const name = prompt("이 위치에 표시할 이름을 입력하세요:");
         if (!name) return;
-        const color = prompt("마커 색상을 입력하세요 (예: red, blue, #ff0000):") || "blue";
+        const color = getRandomColor(); // 랜덤 색상 지정
         push(ref(db, dbPath), { x: xRatio, y: yRatio, name, color });
       });
 
@@ -95,13 +102,11 @@
         marker.className = "marker";
         marker.style.background = data.color || "blue";
 
-        // 이미지 크기를 기준으로 좌표 계산
         const xPos = data.x * mapElement.offsetWidth;
         const yPos = data.y * mapElement.offsetHeight;
 
-        marker.style.left = (xPos - 7) + "px";
-        marker.style.top  = (yPos - 7) + "px";
-        marker.style.position = "absolute";
+        marker.style.left = xPos + "px";
+        marker.style.top  = yPos + "px";
         marker.dataset.key = snapshot.key;
 
         if (!/Mobi|Android/i.test(navigator.userAgent)) {
