@@ -8,12 +8,15 @@
       width: 800px;
     }
     .map-wrapper {
-      position: relative;
       margin-bottom: 40px;
     }
-    .map-wrapper img {
-      width: 100%;
+    .overlay {
+      position: relative;
+      display: inline-block;
+    }
+    .overlay img {
       display: block;
+      width: 100%;
     }
     .marker {
       position: absolute;
@@ -47,11 +50,15 @@
   <div id="map-container">
     <div class="map-wrapper">
       <h2>지도 1</h2>
-      <img src="map1.png" alt="지도1" id="map1">
+      <div class="overlay" id="overlay1">
+        <img src="map1.png" alt="지도1" id="map1">
+      </div>
     </div>
     <div class="map-wrapper">
       <h2>지도 2</h2>
-      <img src="map2.png" alt="지도2" id="map2">
+      <div class="overlay" id="overlay2">
+        <img src="map2.png" alt="지도2" id="map2">
+      </div>
     </div>
   </div>
 
@@ -80,10 +87,9 @@
       return colors[Math.floor(Math.random() * colors.length)];
     }
 
-    function setupMap(mapId, dbPath) {
+    function setupMap(mapId, dbPath, overlayId) {
       const mapElement = document.getElementById(mapId);
-      const container = mapElement.parentElement;
-      container.style.position = "relative";
+      const overlay = document.getElementById(overlayId);
 
       // 지도 클릭 → 비율로 저장
       mapElement.addEventListener("click", function(event) {
@@ -91,7 +97,7 @@
         const yRatio = event.offsetY / mapElement.offsetHeight;
         const name = prompt("이 위치에 표시할 이름을 입력하세요:");
         if (!name) return;
-        const color = getRandomColor(); // 랜덤 색상 지정
+        const color = getRandomColor();
         push(ref(db, dbPath), { x: xRatio, y: yRatio, name, color });
       });
 
@@ -131,20 +137,19 @@
           });
         }
 
-        container.appendChild(marker);
+        overlay.appendChild(marker);
       });
 
       // DB에서 삭제된 마커 제거
       onChildRemoved(ref(db, dbPath), (snapshot) => {
         const key = snapshot.key;
-        const marker = container.querySelector(`.marker[data-key="${key}"]`);
+        const marker = overlay.querySelector(`.marker[data-key="${key}"]`);
         if (marker) marker.remove();
       });
     }
 
-    setupMap("map1", "markers1");
-    setupMap("map2", "markers2");
+    setupMap("map1", "markers1", "overlay1");
+    setupMap("map2", "markers2", "overlay2");
   </script>
 </body>
 </html>
-
