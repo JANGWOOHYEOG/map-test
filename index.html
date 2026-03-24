@@ -13,12 +13,12 @@
     }
     .map-wrapper img {
       width: 100%;
+      display: block;
     }
     .marker {
       position: absolute;
       width: 15px;
       height: 15px;
-      background: blue;
       border-radius: 50%;
       cursor: pointer;
     }
@@ -76,6 +76,7 @@
     function setupMap(mapId, dbPath) {
       const mapElement = document.getElementById(mapId);
       const container = mapElement.parentElement;
+      container.style.position = "relative"; // 좌표 기준 설정
 
       // 지도 클릭 → 비율로 저장
       mapElement.addEventListener("click", function(event) {
@@ -83,9 +84,9 @@
         const xRatio = (event.clientX - rect.left) / rect.width;
         const yRatio = (event.clientY - rect.top) / rect.height;
         const name = prompt("이 위치에 표시할 이름을 입력하세요:");
-        if (name) {
-          push(ref(db, dbPath), { x: xRatio, y: yRatio, name });
-        }
+        if (!name) return;
+        const color = prompt("마커 색상을 입력하세요 (예: red, blue, #ff0000):") || "blue";
+        push(ref(db, dbPath), { x: xRatio, y: yRatio, name, color });
       });
 
       // DB에서 실시간으로 마커 불러오기
@@ -93,19 +94,23 @@
         const data = snapshot.val();
         const marker = document.createElement("div");
         marker.className = "marker";
-        marker.style.left = (data.x * mapElement.clientWidth - 7) + "px";
-        marker.style.top  = (data.y * mapElement.clientHeight - 7) + "px";
+
+        // 이미지 크기를 기준으로 좌표 계산
+        const xPos = data.x * mapElement.offsetWidth;
+        const yPos = data.y * mapElement.offsetHeight;
+
+        marker.style.left = (xPos - 7) + "px";
+        marker.style.top  = (yPos - 7) + "px";
+        marker.style.background = data.color || "blue";
         marker.dataset.key = snapshot.key;
 
         if (!/Mobi|Android/i.test(navigator.userAgent)) {
-          // PC: hover 시 이름 표시, 오른쪽 클릭 삭제
           marker.title = data.name;
           marker.addEventListener("contextmenu", (e) => {
             e.preventDefault();
             remove(snapshot.ref);
           });
         } else {
-          // 모바일: 탭 → 말풍선 표시 + 삭제 여부 확인
           marker.addEventListener("click", () => {
             const tooltip = document.createElement("div");
             tooltip.className = "tooltip";
